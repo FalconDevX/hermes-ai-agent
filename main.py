@@ -131,30 +131,45 @@ def prompt_to_event(user_prompt: str) -> Dict:
         generation_config={"response_mime_type": "application/json"},
     )
 
-    # Generate content using the model and saving it to variable
-    response = gemini_model.generate_content(user_prompt)
+    while True:
+        # Generate content using the model and saving it to variable
+        response = gemini_model.generate_content(user_prompt)
 
-    #Checking if model answer is valid JSON
-    try:
-        event_data = json.loads(response.text)
-    except Exception as e:
-        raise RuntimeError(f"Model did not return JSON: {e}\nRaw: {getattr(response, 'text', '')}")
+        #Checking if model answer is valid JSON
+        try:
+            event_data = json.loads(response.text)
+        except Exception as e:
+            raise RuntimeError(f"Model did not return JSON: {e}\nRaw: {getattr(response, 'text', '')}")
 
-    #Validate required fields
-    missing_field = [key for key in ["title", "start_iso"] if not event_data.get(key)]
-    if missing_field:
-        raise ValueError(f"Missing required fields from model: {missing_field}. Got: {event_data}")
+        #Validate required fields
+        missing_field = [key for key in ["title", "start_iso"] if not event_data.get(key)]
+        if missing_field:
+            raise ValueError(f"Missing required fields from model: {missing_field}. Got: {event_data}")
 
-    #set default timezone if event_data is missing one
-    if not event_data.get("timezone"):
-        event_data["timezone"] = "Europe/Warsaw"
+        #set default timezone if event_data is missing one
+        if not event_data.get("timezone"):
+            event_data["timezone"] = "Europe/Warsaw"
 
-    # Parse and normalize date to local Warsaw time
-    start_dt = parse_iso_local(event_data["start_iso"]).astimezone(TZ)
+        # Parse and normalize date to local Warsaw time
+        start_dt = parse_iso_local(event_data["start_iso"]).astimezone(TZ)
 
-    #Checking if date is in the past
-    now = dt.datetime.now(TZ)
-    start_dt = move_date_to_future(start_dt, now)
+        #Declare current time
+        now = dt.datetime.now(TZ)
+        if start_dt < now:
+            while True:
+                choice = input(
+                    f"⚠️ Start date {start_dt.strftime('%Y-%m-%d %H:%M')} is in the past. Move to future? (y/n): "
+                ).strip().lower()
+
+                if choice == "y":
+                    start_dt = move_date_to_future(start_dt, now)
+                    break  # wychodzimy z tej małej pętli i kontynuujemy tworzenie eventu
+                elif choice == "n":
+                    user_prompt = input("🗣️ Enter a new event: ").strip()
+                    continue  # wracamy do początku głównej pętli while True
+                else:
+                    print("❌ Invalid input. Please enter 'y' or 'n'.")
+            break
 
     # Default duration +1h if end missing/empty
     if not event_data.get("end_iso"):
@@ -188,18 +203,18 @@ def create_event(event_info: Dict, calendar_id: str = "primary") -> str:
 def main():
     #Showing user formatted current time
     today_str = dt.datetime.now(TZ).strftime("%Y-%m-%d (%A) %H:%M")
-    print(f"📅 Dziś: {today_str}")
+    print(f"📅 Today: {today_str}")
 
     # Get user input for event details
-    user_text = input("🗣️ Polecenie: ").strip()
+    user_text = input("🗣️ Prompt: ").strip()
     gemini_answer= prompt_to_event(user_text)
 
     # Echo parsed times for clarity
     print(f"⏰ Start: {gemini_answer['start_iso']}  (strefa: {gemini_answer['timezone']})")
-    print(f"⏱️  Koniec: {gemini_answer['end_iso']}  (strefa: {gemini_answer['timezone']})")
+    print(f"⏱️  End: {gemini_answer['end_iso']}  (strefa: {gemini_answer['timezone']})")
 
     link = create_event(gemini_answer)
-    print(f"✔️ Dodano: {gemini_answer['title']}")
+    print(f"✔️ Added: {gemini_answer['title']}")
     print(f"🔗 Link: {link}")
 
 if __name__ == "__main__":
