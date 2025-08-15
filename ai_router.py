@@ -1,10 +1,10 @@
-import google.generativeai as genai
+from google import genai
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 MODEL_NAME = "gemini-2.0-flash"  
 
@@ -24,20 +24,17 @@ def choose_specified_model(user_prompt: str) -> str:
         "Coś o wydarzeniu, ale nie wiem jak -> clarification_needed \n"
     )
 
-    gemini_model = genai.GenerativeModel(
-        model_name=MODEL_NAME,
-        system_instruction=gemini_instructions,
-        generation_config={
-            "temperature": 0.0,
-            "max_output_tokens": 6
-        }
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=user_prompt,
+        config={
+                "system_instruction": gemini_instructions,
+                "response_mime_type": "application/json"
+            }
     )
-
-    response = gemini_model.generate_content(user_prompt)
-    
     return response.text
 
 if __name__ == "__main__":
-    user_input = "pokaż moje ustawienia użytkownika"
+    user_input = "zmien nazwe użytkownika"
     model_response = choose_specified_model(user_input)
     print(f"Model response: {model_response}")
