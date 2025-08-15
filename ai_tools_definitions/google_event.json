@@ -1,0 +1,56 @@
+{
+  "name": "create_calendar_event",
+  "description": "Creates a Google Calendar event with title, time, attendees, and optional details.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "summary": { "type": "string", "description": "Title of the event." },
+      "location": { "type": "string", "description": "Event location." },
+      "description": { "type": "string", "description": "Event description." },
+      "start": {
+        "type": "object",
+        "properties": {
+          "dateTime": { "type": "string", "description": "Start date/time in ISO format." },
+          "timeZone": { "type": "string", "description": "Time zone for the start time." }
+        },
+        "required": ["dateTime", "timeZone"]
+      },
+      "end": {
+        "type": "object",
+        "properties": {
+          "dateTime": { "type": "string", "description": "End date/time in ISO format." },
+          "timeZone": { "type": "string", "description": "Time zone for the end time." }
+        },
+        "required": ["dateTime", "timeZone"]
+      },
+      "attendees": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "email": { "type": "string" }
+          },
+          "required": ["email"]
+        }
+      },
+      "reminders": {
+        "type": "object",
+        "properties": {
+          "useDefault": { "type": "boolean" },
+          "overrides": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "method": { "type": "string", "enum": ["email", "popup"] },
+                "minutes": { "type": "integer" }
+              },
+              "required": ["method", "minutes"]
+            }
+          }
+        }
+      }
+    },
+    "required": ["summary", "start", "end"]
+  }
+}
