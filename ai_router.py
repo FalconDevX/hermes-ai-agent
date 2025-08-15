@@ -8,6 +8,13 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 MODEL_NAME = "gemini-2.0-flash"  
 
+COMMANDS = ["add_event", "list_events", "remove_event", "clarification_needed"]
+
+schema = {
+    "type" : "string",
+    "enum": COMMANDS
+}
+
 def choose_specified_model(user_prompt: str) -> str:
     """Function which choose a specified ai model using gemini based on user input."""
     
@@ -29,7 +36,8 @@ def choose_specified_model(user_prompt: str) -> str:
         contents=user_prompt,
         config={
                 "system_instruction": gemini_instructions,
-                "response_mime_type": "application/json"
+                "response_mime_type": "application/json",
+                "response_schema": schema
             }
     )
     return response.text
