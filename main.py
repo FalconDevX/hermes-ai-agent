@@ -168,10 +168,10 @@ def prompt_to_event(user_prompt: str) -> Dict:
 
                 if choice == "y":
                     start_dt = move_date_to_future(start_dt, now)
-                    break  # wychodzimy z tej małej pętli i kontynuujemy tworzenie eventu
+                    break  
                 elif choice == "n":
                     user_prompt = input("🗣️ Enter a new event: ").strip()
-                    continue  # wracamy do początku głównej pętli while True
+                    continue  
                 else:
                     print("❌ Invalid input. Please enter 'y' or 'n'.")
             break
