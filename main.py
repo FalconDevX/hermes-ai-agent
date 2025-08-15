@@ -37,7 +37,8 @@ def setup_calendar_service():
                 creds = flow.run_local_server(port=0)
             with open("token.json", "w") as token:
                 token.write(creds.to_json())
-            service = build("calendar", "v3", credentials=creds)
+            
+        service = build("calendar", "v3", credentials=creds)
         
         return service
     except Exception as e:

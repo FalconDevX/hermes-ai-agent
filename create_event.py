@@ -5,6 +5,8 @@ from google import genai
 import json
 from dotenv import load_dotenv
 
+from main import setup_calendar_service
+
 from typing import List, Optional, Literal
 from pydantic import BaseModel
 
@@ -54,13 +56,13 @@ class EventDateTime(BaseModel):
 class Attendee(BaseModel):
     email: str
     
-class RemiderOverride(BaseModel):
+class ReminderOverride(BaseModel):
     method: Literal["email", "popup"]
     minutes: int
 
 class Reminders(BaseModel):
     useDefault: bool = True
-    overrides: Optional[List[RemiderOverride]] = None
+    overrides: Optional[List[ReminderOverride]] = None
 
 #Main model
 class CalendarEvent(BaseModel):
@@ -69,8 +71,6 @@ class CalendarEvent(BaseModel):
     description: Optional[str] = None
     start: EventDateTime
     end: EventDateTime
-    attendees: List[Attendee]
-    reminders: Optional[Reminders] = None
     attendees: Optional[List[Attendee]] = None
     reminders: Optional[Reminders] = None
 
@@ -98,7 +98,12 @@ def create_event_prompt(user_prompt: str) -> str:
     config = genai.types.GenerateContentConfig(
         tools=[tools],
         system_instruction=gemini_instructions,
-        response_mime_type="application/json"
+        tool_config=genai.types.ToolConfig(
+            function_calling_config=genai.types.FunctionCallingConfig(
+                mode="ANY",  # "ANY" = zawsze może wywołać, "NONE" = nigdy
+                allowed_function_names=["create_calendar_event"]  # nazwa z google_event.json
+            )
+        )
     )
 
     response = client.models.generate_content(
@@ -107,9 +112,27 @@ def create_event_prompt(user_prompt: str) -> str:
         config=config
     )
 
-    return response
+    if response.candidates[0].content.parts[0].function_call:
+        function_call = response.candidates[0].content.parts[0].function_call
+        print(f"Function to call {function_call.name}")
+        print(f"Arguments: {function_call.args}")
+    else:
+        print("No function call found in the response.")
+        print(f"Response text: {response.text}")
+
+    if function_call:
+        return function_call.args
+    else:
+        raise ValueError("No function call found in the response. Please check the input prompt.")
+
+def create_event_api(event: json):
+    service = setup_calendar_service()
+    event = service.events().insert(calendarId='primary', body=event).execute()
+    print(f"Event created: %s" % (event.get('htmlLink')))
+
 
 if __name__ == "__main__":
     user_prompt = "Chcę umówić spotkanie z zespołem na jutro o 10:00."
     response = create_event_prompt(user_prompt)
+    create_event_api(response)
 

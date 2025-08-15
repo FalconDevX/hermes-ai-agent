@@ -40,5 +40,10 @@ def choose_specified_model(user_prompt: str) -> str:
                 "response_schema": schema
             }
     )
+
+    
+
+
+
     return response.text
 
