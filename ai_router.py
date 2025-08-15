@@ -25,7 +25,7 @@ def choose_specified_model(user_prompt: str) -> str:
         "Return ONLY the string, with no punctuation, no explanation, no quotes.\n"
         "If the request is unclear, return: clarification_needed\n"
         "Examples:\n"
-        "Dodaj spotkanie na jutro o 15 -> add_event\n"
+        "Dodaj spotkanie na jutro o 15 lubtest jutro 15-16 -> add_event\n"
         "Pokaż mi nadchodzące wydarzenia -> list_events\n"
         "Usuń wydarzenie jutro o 12 -> remove_event\n"
         "Coś o wydarzeniu, ale nie wiem jak -> clarification_needed \n"
@@ -42,7 +42,3 @@ def choose_specified_model(user_prompt: str) -> str:
     )
     return response.text
 
-if __name__ == "__main__":
-    user_input = "zmien nazwe użytkownika"
-    model_response = choose_specified_model(user_input)
-    print(f"Model response: {model_response}")
