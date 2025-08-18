@@ -49,6 +49,10 @@
             }
           }
         }
+      },
+        "colorId": {
+        "type": "string",
+        "description": "ID koloru wydarzenia (1-11)"
       }
     },
     "required": ["summary", "start", "end"]

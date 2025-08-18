@@ -17,7 +17,10 @@ genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 MODEL_NAME = "gemini-2.0-flash"  
 
-SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
+SCOPES = [
+    "https://www.googleapis.com/auth/calendar",           
+    "https://www.googleapis.com/auth/calendar.events"     
+]
 
 TZ = ZoneInfo("Europe/Warsaw")
 

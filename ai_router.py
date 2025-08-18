@@ -38,7 +38,7 @@ def choose_specified_model(user_prompt: str) -> str:
                 "system_instruction": gemini_instructions,
                 "response_mime_type": "application/json",
                 "response_schema": schema
-            }
+        }
     )
 
     
