@@ -1,12 +1,17 @@
+from zoneinfo import ZoneInfo
 from google import genai
 import os
 from dotenv import load_dotenv
+
+from ai_google_calendar import create_event_prompt
 
 load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 MODEL_NAME = "gemini-2.0-flash"  
+
+TZ = ZoneInfo("Europe/Warsaw")
 
 COMMANDS = ["add_event", "list_events", "remove_event", "clarification_needed"]
 
@@ -36,14 +41,16 @@ def choose_specified_model(user_prompt: str) -> str:
         contents=user_prompt,
         config={
                 "system_instruction": gemini_instructions,
-                "response_mime_type": "application/json",
-                "response_schema": schema
+                "response_mime_type": "text/plain"
         }
     )
 
-    
-
-
-
-    return response.text
+    if response.text.strip() == "add_event":
+        create_event_prompt(user_prompt)
+    elif response.text.strip() == "list_events":
+        print("function to be implemented")
+    elif response.text.strip() == "remove_event":
+        print("function to be implemented")
+    elif response.text.strip() == "clarification_needed":
+        print("Please clarify your request.")
 

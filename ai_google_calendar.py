@@ -5,12 +5,21 @@ from google import genai
 import json
 from dotenv import load_dotenv
 
-from main import setup_calendar_service
+from utils import setup_calendar_service
 
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 MODEL_NAME = "gemini-2.0-flash"  
+
+def create_event_api(event: json):
+    service = setup_calendar_service()
+
+    if "colorId" not in event:
+        event["colorId"] = "5"
+
+    event = service.events().insert(calendarId='primary', body=event).execute()
+    print(f"Event created: %s" % (event.get('htmlLink')))
 
 def create_event_prompt(user_prompt: str) -> str:
     """Create a prompt for the ai model to generate calendar event in formatted way"""
@@ -68,18 +77,11 @@ def create_event_prompt(user_prompt: str) -> str:
         print(f"Response text: {response.text}")
 
     if function_call:
-        return function_call.args
+        create_event_api(function_call.args)
     else:
         raise ValueError("No function call found in the response. Please check the input prompt.")
 
-def create_event_api(event: json):
-    service = setup_calendar_service()
 
-    if "colorId" not in event:
-        event["colorId"] = "5"
-
-    event = service.events().insert(calendarId='primary', body=event).execute()
-    print(f"Event created: %s" % (event.get('htmlLink')))
 
 # def list_available_colors():
 #     service = setup_calendar_service()
@@ -88,13 +90,4 @@ def create_event_api(event: json):
 #     for color_id, color_info in colors["event"].items():
 #         print(f"{color_id}: background={color_info['background']}, foreground={color_info['foreground']}")
 
-
-if __name__ == "__main__":
-    user_prompt = "Chcę umówić spotkanie z zespołem pojutrze o 03:00 rano jasnoróżowy."
-    response = create_event_prompt(user_prompt)
-    print(response)
-    
-    # list_available_colors()
-
-    create_event_api(response)
 
