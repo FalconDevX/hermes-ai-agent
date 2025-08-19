@@ -17,5 +17,5 @@ TZ = ZoneInfo("Europe/Warsaw")
 
 if __name__ == "__main__":
     while True:
-        user_prompt = input("Enter your request: ")
+        user_prompt = input("💬 Wpisz swoje polecenie: ")
         choose_specified_model(user_prompt)

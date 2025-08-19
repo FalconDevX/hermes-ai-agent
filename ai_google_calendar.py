@@ -19,7 +19,7 @@ def create_event_api(event: json):
         event["colorId"] = "5"
 
     event = service.events().insert(calendarId='primary', body=event).execute()
-    print(f"Event created: %s" % (event.get('htmlLink')))
+    print(f"✅ Utworzono wydarzenie: {event.get('htmlLink')}")
 
 def list_events_api(time_min, time_max):
     service = setup_calendar_service()
@@ -35,10 +35,10 @@ def list_events_api(time_min, time_max):
     events = events_result.get("items", [])
 
     if not events:
-        print("Brak nadchodzących wydarzeń.")
+        print("📭 Brak nadchodzących wydarzeń.")
     for event in events:
         start = event["start"].get("dateTime", event["start"].get("date"))
-        print(f"📅 {event['summary']} (Start: {start})")
+        print(f"📅 {event['summary']} (🕒 Początek: {start})")
 
     return events
 
@@ -71,8 +71,8 @@ def delete_event_api(event_name: str, time_min: str, time_max: str):
         print(f"🗑️ Usuwanie wydarzenia: {event['summary']} "
               f"({event['start'].get('dateTime', event['start'].get('date'))})")
 
-        confirm = input("Usunąć? (Y/N): ").lower()
-        if confirm == "y":
+        confirm = input("Usunąć? (T/N): ").lower()
+        if confirm in ("t", "y"):
             service.events().delete(calendarId='primary', eventId=event["id"]).execute()
             print(f"✅ Usunięto: {event['summary']}")
         else:
@@ -81,7 +81,7 @@ def delete_event_api(event_name: str, time_min: str, time_max: str):
         print("⚠️ Znaleziono kilka pasujących wydarzeń:")
         for num, event in enumerate(matches, start=1):
             start = event["start"].get("dateTime", event["start"].get("date"))
-            print(f"{num}. 📅 {event['summary']} (Start: {start})")
+            print(f"{num}. 📅 {event['summary']} (🕒 Początek: {start})")
 
         while True:
             choice = input("Wybierz numer wydarzenia do usunięcia (lub Enter aby anulować): ")
@@ -97,8 +97,8 @@ def delete_event_api(event_name: str, time_min: str, time_max: str):
                     print(f"🗑️ Usuwanie wydarzenia: {event['summary']} "
                           f"({event['start'].get('dateTime', event['start'].get('date'))})")
 
-                    confirm = input("Usunąć? (Y/N): ").lower()
-                    if confirm == "y":
+                    confirm = input("Usunąć? (T/N): ").lower()
+                    if confirm in ("t", "y"):
                         service.events().delete(calendarId='primary', eventId=event["id"]).execute()
                         print(f"✅ Usunięto: {event['summary']}")
                     else:
@@ -107,7 +107,7 @@ def delete_event_api(event_name: str, time_min: str, time_max: str):
                 else:
                     print("❌ Nieprawidłowy numer, spróbuj ponownie.")
             else:
-                print("❌ Podaj poprawny numer albo Enter aby anulować.")
+                print("❌ Podaj poprawny numer albo naciśnij Enter, aby anulować.")
                     
 
 def create_event_prompt(user_prompt: str) -> str:
@@ -159,16 +159,16 @@ def create_event_prompt(user_prompt: str) -> str:
 
     if response.candidates[0].content.parts[0].function_call:
         function_call = response.candidates[0].content.parts[0].function_call
-        print(f"Function to call {function_call.name}")
-        print(f"Arguments: {function_call.args}")
+        print(f"🛠️ Wywołanie funkcji: {function_call.name}")
+        print(f"🧩 Argumenty: {function_call.args}")
     else:
-        print("No function call found in the response.")
-        print(f"Response text: {response.text}")
+        print("❌ Nie znaleziono wywołania funkcji w odpowiedzi.")
+        print(f"📝 Tekst odpowiedzi: {response.text}")
 
     if function_call:
         create_event_api(function_call.args)
     else:
-        raise ValueError("No function call found in the response. Please check the input prompt.")
+        raise ValueError("Nie znaleziono wywołania funkcji w odpowiedzi. Sprawdź dane wejściowe.")
 
 def list_events_prompt(user_prompt: str):
     """Create prompt for ai model to list events from user input and returns two date interval"""
@@ -210,16 +210,16 @@ def list_events_prompt(user_prompt: str):
 
     if response.candidates[0].content.parts[0].function_call:
         function_call = response.candidates[0].content.parts[0].function_call
-        print(f"Function to call {function_call.name}")
-        print(f"Arguments: {function_call.args}")
+        print(f"🛠️ Wywołanie funkcji: {function_call.name}")
+        print(f"🧩 Argumenty: {function_call.args}")
     else:
-        print("No function call found in the response.")
-        print(f"Response text: {response.text}")
+        print("❌ Nie znaleziono wywołania funkcji w odpowiedzi.")
+        print(f"📝 Tekst odpowiedzi: {response.text}")
 
     if function_call:
         list_events_api(function_call.args["timeMin"], function_call.args["timeMax"])
     else:
-        raise ValueError("No function call found in the response. Please check the input prompt.")
+        raise ValueError("Nie znaleziono wywołania funkcji w odpowiedzi. Sprawdź dane wejściowe.")
 
 def delete_event_prompt(user_prompt: str):
     """Create prompt for ai model to delete an event from user input."""
@@ -265,11 +265,11 @@ def delete_event_prompt(user_prompt: str):
 
     if response.candidates[0].content.parts[0].function_call:
         function_call = response.candidates[0].content.parts[0].function_call
-        print(f"Function to call {function_call.name}")
-        print(f"Arguments: {function_call.args}")
+        print(f"🛠️ Wywołanie funkcji: {function_call.name}")
+        print(f"🧩 Argumenty: {function_call.args}")
     else:
-        print("No function call found in the response.")
-        print(f"Response text: {response.text}")
+        print("❌ Nie znaleziono wywołania funkcji w odpowiedzi.")
+        print(f"📝 Tekst odpowiedzi: {response.text}")
 
     if function_call:
         delete_event_api(

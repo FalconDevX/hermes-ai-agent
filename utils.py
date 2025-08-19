@@ -30,5 +30,5 @@ def setup_calendar_service():
         
         return service
     except Exception as e:
-        print(f"An error occurred while setting up the calendar service: {e}")
+        print(f"⚠️ Wystąpił błąd podczas konfigurowania usługi Kalendarza Google: {e}")
         return None

@@ -52,5 +52,5 @@ def choose_specified_model(user_prompt: str) -> str:
     elif response.text.strip() == "remove_event":
         delete_event_prompt(user_prompt)
     elif response.text.strip() == "clarification_needed":
-        print("Please clarify your request.")
+        print("❓ Doprecyzuj swoje polecenie.")
 
