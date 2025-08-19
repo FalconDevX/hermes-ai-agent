@@ -40,6 +40,76 @@ def list_events_api(time_min, time_max):
         start = event["start"].get("dateTime", event["start"].get("date"))
         print(f"📅 {event['summary']} (Start: {start})")
 
+    return events
+
+def delete_event_api(event_name: str, time_min: str, time_max: str):
+    """Delete event by searching its name in a given date range."""
+    service = setup_calendar_service()
+    
+    events_result = service.events().list(
+        calendarId='primary',
+        timeMin=time_min,
+        timeMax=time_max,
+        maxResults=10,
+        singleEvents=True,
+        orderBy="startTime"
+    ).execute()
+
+    events = events_result.get("items", [])
+
+    matches = [
+        event for event in events 
+        if event_name.strip().lower() in event.get("summary", "").strip().lower()
+    ]
+
+    if not matches:
+        print("❌ Nie znaleziono pasujących wydarzeń.")
+        return
+
+    if len(matches) == 1:
+        event = matches[0]
+        print(f"🗑️ Usuwanie wydarzenia: {event['summary']} "
+              f"({event['start'].get('dateTime', event['start'].get('date'))})")
+
+        confirm = input("Usunąć? (Y/N): ").lower()
+        if confirm == "y":
+            service.events().delete(calendarId='primary', eventId=event["id"]).execute()
+            print(f"✅ Usunięto: {event['summary']}")
+        else:
+            print("❎ Usuwanie anulowane.")
+    else:
+        print("⚠️ Znaleziono kilka pasujących wydarzeń:")
+        for num, event in enumerate(matches, start=1):
+            start = event["start"].get("dateTime", event["start"].get("date"))
+            print(f"{num}. 📅 {event['summary']} (Start: {start})")
+
+        while True:
+            choice = input("Wybierz numer wydarzenia do usunięcia (lub Enter aby anulować): ")
+            
+            if choice.strip() == "":
+                print("❎ Usuwanie anulowane.")
+                break
+
+            if choice.isdigit():
+                choice_num = int(choice) - 1
+                if 0 <= choice_num < len(matches):
+                    event = matches[choice_num]
+                    print(f"🗑️ Usuwanie wydarzenia: {event['summary']} "
+                          f"({event['start'].get('dateTime', event['start'].get('date'))})")
+
+                    confirm = input("Usunąć? (Y/N): ").lower()
+                    if confirm == "y":
+                        service.events().delete(calendarId='primary', eventId=event["id"]).execute()
+                        print(f"✅ Usunięto: {event['summary']}")
+                    else:
+                        print("❎ Usuwanie anulowane.")
+                    break
+                else:
+                    print("❌ Nieprawidłowy numer, spróbuj ponownie.")
+            else:
+                print("❌ Podaj poprawny numer albo Enter aby anulować.")
+                    
+
 def create_event_prompt(user_prompt: str) -> str:
     """Create a prompt for the ai model to generate calendar event in formatted way"""
 
@@ -150,6 +220,67 @@ def list_events_prompt(user_prompt: str):
         list_events_api(function_call.args["timeMin"], function_call.args["timeMax"])
     else:
         raise ValueError("No function call found in the response. Please check the input prompt.")
+
+def delete_event_prompt(user_prompt: str):
+    """Create prompt for ai model to delete an event from user input."""
+
+    today = dt.datetime.now(tz=dt.timezone.utc).astimezone(tz=ZoneInfo("Europe/Warsaw"))
+
+    gemini_instructions = (
+        f"Today is {today.date().isoformat()} and the current local time is "
+        f"{today.time().strftime('%H:%M')} in Europe/Warsaw.\n"
+        "Convert the following Polish natural language request into a function_call "
+        "for deleting a Google Calendar event.\n"
+        "Always return a function_call with three arguments: eventName, timeMin, timeMax.\n"
+        "Rules:\n"
+        "- eventName → extract directly from the user request (string).\n"
+        "- 'dzisiaj' → timeMin = today 00:00, timeMax = today 23:59.\n"
+        "- 'jutro' → timeMin = tomorrow 00:00, timeMax = tomorrow 23:59.\n"
+        "- 'ten tydzień' → Monday this week → Sunday this week.\n"
+        "- 'przyszły tydzień' → Monday next week → Sunday next week.\n"
+        "- 'ten miesiąc' → first day of this month → last day of this month.\n"
+        "- 'przyszły miesiąc' → first day of next month → last day of next month.\n"
+        "- If user specifies a range (e.g. 'od 1 września do 10 września'), use it directly.\n"
+        "- If only one date is given, use it as both timeMin (00:00) and timeMax (23:59).\n"
+        "- Always return ISO 8601 format with timezone Europe/Warsaw.\n"
+        "- If no date is given check the whole week.\n"
+        "Never return plain text, only function_call."
+    )
+
+    with open("./ai_tools_definitions/google_delete_event.json", "r", encoding="utf-8") as file:
+        ai_tool_google_calendar_object = json.load(file)
+
+    tools = genai.types.Tool(function_declarations=[ai_tool_google_calendar_object])
+
+    config = genai.types.GenerateContentConfig(
+        tools=[tools],
+        system_instruction=gemini_instructions
+    )
+
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=user_prompt,
+        config=config
+    )
+
+    if response.candidates[0].content.parts[0].function_call:
+        function_call = response.candidates[0].content.parts[0].function_call
+        print(f"Function to call {function_call.name}")
+        print(f"Arguments: {function_call.args}")
+    else:
+        print("No function call found in the response.")
+        print(f"Response text: {response.text}")
+
+    if function_call:
+        delete_event_api(
+            function_call.args["eventName"],
+            function_call.args["timeMin"],
+            function_call.args["timeMax"]
+        )
+    else:
+        raise ValueError("No function call found in the response. Please check the input prompt.")
+
+
 
 # def list_available_colors():
 #     service = setup_calendar_service()

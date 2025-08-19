@@ -1,0 +1,22 @@
+{
+  "name": "delete_event",
+  "description": "Delete a Google Calendar event by name within a date interval.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "eventName": {
+        "type": "string",
+        "description": "Name of the event to delete (user will usually provide it in natural language)."
+      },
+      "timeMin": {
+        "type": "string",
+        "description": "Start of the time range in ISO 8601 format with timezone (Europe/Warsaw)."
+      },
+      "timeMax": {
+        "type": "string",
+        "description": "End of the time range in ISO 8601 format with timezone (Europe/Warsaw)."
+      }
+    },
+    "required": ["eventName", "timeMin", "timeMax"]
+  }
+}
