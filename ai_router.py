@@ -3,7 +3,7 @@ from google import genai
 import os
 from dotenv import load_dotenv
 
-from ai_google_calendar import create_event_prompt
+from ai_google_calendar import create_event_prompt, list_events_prompt
 
 load_dotenv()
 
@@ -48,7 +48,7 @@ def choose_specified_model(user_prompt: str) -> str:
     if response.text.strip() == "add_event":
         create_event_prompt(user_prompt)
     elif response.text.strip() == "list_events":
-        print("function to be implemented")
+        list_events_prompt(user_prompt)
     elif response.text.strip() == "remove_event":
         print("function to be implemented")
     elif response.text.strip() == "clarification_needed":
