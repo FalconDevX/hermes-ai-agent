@@ -158,7 +158,7 @@ def create_event_prompt(user_prompt: str) -> str:
 
     response = client.models.generate_content(
         model=MODEL_NAME,
-        contents=messages,
+        contents=messages[-10:],
         config=config
     )
 
@@ -223,7 +223,7 @@ def list_events_prompt(user_prompt: str):
 
     response = client.models.generate_content(
         model=MODEL_NAME,
-        contents=messages,
+        contents=messages[-10:],
         config=config
     )
 
@@ -291,7 +291,7 @@ def delete_event_prompt(user_prompt: str):
 
     response = client.models.generate_content(
         model=MODEL_NAME,
-        contents=messages,
+        contents=messages[-10:],
         config=config
     )
 

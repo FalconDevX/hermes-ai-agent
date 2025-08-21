@@ -52,7 +52,7 @@ def choose_specified_model(user_prompt: str) -> str:
 
     response = client.models.generate_content(
         model=MODEL_NAME,
-        contents=messages,  
+        contents=messages[-10:],  
         config=config
     )
 
