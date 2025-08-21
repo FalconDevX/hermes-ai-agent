@@ -4,8 +4,9 @@ from zoneinfo import ZoneInfo
 from google import genai
 import json
 from dotenv import load_dotenv
-
 from utils import setup_calendar_service
+
+from utils import messages
 
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -39,8 +40,6 @@ def list_events_api(time_min, time_max):
     for event in events:
         start = event["start"].get("dateTime", event["start"].get("date"))
         print(f"📅 {event['summary']} (🕒 Początek: {start})")
-
-    return events
 
 def delete_event_api(event_name: str, time_min: str, time_max: str):
     """Delete event by searching its name in a given date range."""
@@ -109,9 +108,15 @@ def delete_event_api(event_name: str, time_min: str, time_max: str):
             else:
                 print("❌ Podaj poprawny numer albo naciśnij Enter, aby anulować.")
                     
-
 def create_event_prompt(user_prompt: str) -> str:
     """Create a prompt for the ai model to generate calendar event in formatted way"""
+
+    messages.append(
+        genai.types.Content(
+            role="user",
+            parts=[genai.types.Part.from_text(text=user_prompt)]
+        )
+    )
 
     today = dt.datetime.now(tz=dt.timezone.utc).astimezone(tz=ZoneInfo("Europe/Warsaw"))
 
@@ -138,7 +143,7 @@ def create_event_prompt(user_prompt: str) -> str:
         "- light green → \"10\"\n"
         "- pink → \"4\"\n"
         "If the user does not specify a color, do NOT include the colorId field in the response.\n"
-        "Return the event as function_call, not plain JSON."
+        "Return ONLY as function_call with args, NEVER plain JSON or text."
     )
 
     with open("./ai_tools_definitions/google_event.json", "r", encoding="utf-8") as file:
@@ -153,14 +158,20 @@ def create_event_prompt(user_prompt: str) -> str:
 
     response = client.models.generate_content(
         model=MODEL_NAME,
-        contents=user_prompt,
+        contents=messages,
         config=config
     )
 
-    if response.candidates[0].content.parts[0].function_call:
-        function_call = response.candidates[0].content.parts[0].function_call
+    function_call = None
+
+    ai_message = response.candidates[0].content.parts[0]
+
+    if ai_message.function_call:
+        function_call = ai_message.function_call
+
         print(f"🛠️ Wywołanie funkcji: {function_call.name}")
         print(f"🧩 Argumenty: {function_call.args}")
+
     else:
         print("❌ Nie znaleziono wywołania funkcji w odpowiedzi.")
         print(f"📝 Tekst odpowiedzi: {response.text}")
@@ -172,6 +183,14 @@ def create_event_prompt(user_prompt: str) -> str:
 
 def list_events_prompt(user_prompt: str):
     """Create prompt for ai model to list events from user input and returns two date interval"""
+    
+    messages.append(
+        genai.types.Content(
+            role="user",
+            parts=[genai.types.Part.from_text(text=user_prompt)]
+        )
+    )
+
     today = dt.datetime.now(tz=dt.timezone.utc).astimezone(tz=ZoneInfo("Europe/Warsaw"))
 
     gemini_instructions = (
@@ -204,14 +223,20 @@ def list_events_prompt(user_prompt: str):
 
     response = client.models.generate_content(
         model=MODEL_NAME,
-        contents=user_prompt,
+        contents=messages,
         config=config
     )
 
-    if response.candidates[0].content.parts[0].function_call:
-        function_call = response.candidates[0].content.parts[0].function_call
+    function_call = None
+
+    ai_message = response.candidates[0].content.parts[0]
+
+    if ai_message.function_call:
+        function_call = ai_message.function_call
+
         print(f"🛠️ Wywołanie funkcji: {function_call.name}")
         print(f"🧩 Argumenty: {function_call.args}")
+
     else:
         print("❌ Nie znaleziono wywołania funkcji w odpowiedzi.")
         print(f"📝 Tekst odpowiedzi: {response.text}")
@@ -223,6 +248,13 @@ def list_events_prompt(user_prompt: str):
 
 def delete_event_prompt(user_prompt: str):
     """Create prompt for ai model to delete an event from user input."""
+
+    messages.append(
+        genai.types.Content(
+            role="user",
+            parts=[genai.types.Part.from_text(text=user_prompt)]
+        )
+    )
 
     today = dt.datetime.now(tz=dt.timezone.utc).astimezone(tz=ZoneInfo("Europe/Warsaw"))
 
@@ -259,12 +291,16 @@ def delete_event_prompt(user_prompt: str):
 
     response = client.models.generate_content(
         model=MODEL_NAME,
-        contents=user_prompt,
+        contents=messages,
         config=config
     )
 
-    if response.candidates[0].content.parts[0].function_call:
-        function_call = response.candidates[0].content.parts[0].function_call
+    function_call = None
+
+    ai_message = response.candidates[0].content.parts[0]
+
+    if ai_message.function_call:
+        function_call = ai_message.function_call
         print(f"🛠️ Wywołanie funkcji: {function_call.name}")
         print(f"🧩 Argumenty: {function_call.args}")
     else:
@@ -279,14 +315,4 @@ def delete_event_prompt(user_prompt: str):
         )
     else:
         raise ValueError("No function call found in the response. Please check the input prompt.")
-
-
-
-# def list_available_colors():
-#     service = setup_calendar_service()
-#     colors = service.colors().get().execute()
-#     print("Available event colors:")
-#     for color_id, color_info in colors["event"].items():
-#         print(f"{color_id}: background={color_info['background']}, foreground={color_info['foreground']}")
-
 

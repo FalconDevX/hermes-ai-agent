@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 
 from ai_google_calendar import create_event_prompt, list_events_prompt, delete_event_prompt
 
+from utils import messages
+
 load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -23,6 +25,13 @@ schema = {
 def choose_specified_model(user_prompt: str) -> str:
     """Function which choose a specified ai model using gemini based on user input."""
     
+    messages.append(
+        genai.types.Content(
+            role="user",
+            parts=[genai.types.Part.from_text(text=user_prompt)]
+        )
+    )
+
     gemini_instructions = (
         "You act as a command classifier.\n"
         "Convert the user's request (in Polish) into exactly ONE of these strings:\n"
@@ -36,21 +45,25 @@ def choose_specified_model(user_prompt: str) -> str:
         "Coś o wydarzeniu, ale nie wiem jak -> clarification_needed \n"
     )
 
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=user_prompt,
-        config={
-                "system_instruction": gemini_instructions,
-                "response_mime_type": "text/plain"
-        }
+    config = genai.types.GenerateContentConfig(
+        system_instruction=gemini_instructions,
+        response_mime_type="text/plain"
     )
 
-    if response.text.strip() == "add_event":
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=messages,  
+        config=config
+    )
+
+    result = response.text.strip()
+
+    if result == "add_event":
         create_event_prompt(user_prompt)
-    elif response.text.strip() == "list_events":
+    elif result == "list_events":
         list_events_prompt(user_prompt)
-    elif response.text.strip() == "remove_event":
+    elif result == "remove_event":
         delete_event_prompt(user_prompt)
-    elif response.text.strip() == "clarification_needed":
+    elif result == "clarification_needed":
         print("❓ Doprecyzuj swoje polecenie.")
 

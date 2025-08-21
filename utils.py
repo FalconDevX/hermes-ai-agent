@@ -9,6 +9,8 @@ SCOPES = [
     "https://www.googleapis.com/auth/calendar.events"     
 ]
 
+messages = []
+
 def setup_calendar_service():
     """Create an token file with authenticated Google Calendar service using OAuth tokens."""
     try:
@@ -32,3 +34,4 @@ def setup_calendar_service():
     except Exception as e:
         print(f"⚠️ Wystąpił błąd podczas konfigurowania usługi Kalendarza Google: {e}")
         return None
+
