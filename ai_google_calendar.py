@@ -156,6 +156,11 @@ def create_event_prompt(user_prompt: str) -> str:
         "- light green → \"10\"\n"
         "- pink → \"4\"\n"
         "If the user does not specify a color, do NOT include the colorId field in the response.\n"
+        "For reminders:\n"
+        "- If the user specifies custom reminders, always return them inside 'overrides' \n"
+        "and set 'useDefault' to false.\n"
+        "- If the user requests to use default reminders, set 'useDefault' to true and do not include overrides.\n"
+        "- Never include both 'useDefault: true' and 'overrides' together.\n"
         "Return ONLY as function_call with args, NEVER plain JSON or text."
     )
 
