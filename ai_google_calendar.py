@@ -19,6 +19,19 @@ def create_event_api(event: json):
     if "colorId" not in event:
         event["colorId"] = "5"
 
+    if "reminders" in event:
+        if "overrides" in event["reminders"]:
+            event["reminders"]["useDefault"] = False
+        elif "useDefault" not in event["reminders"]:
+            event["reminders"]["useDefault"] = True
+    else:
+        event["reminders"] = {
+            "useDefault": False,
+            "overrides": [
+                {"method": "popup", "minutes": 30}
+            ]
+        }
+
     event = service.events().insert(calendarId='primary', body=event).execute()
     print(f"✅ Utworzono wydarzenie: {event.get('htmlLink')}")
 
