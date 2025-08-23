@@ -16,15 +16,72 @@ MODEL_NAME = "gemini-2.0-flash"
 def create_event_api(event: json):
     service = setup_calendar_service()
 
-    if "colorId" not in event:
-        event["colorId"] = "5"
+    COLOR_MAP = {
+        "red": "11",
+        "green": "2",
+        "blue": "9",
+        "purple": "3",
+        "yellow": "5",
+        "orange": "6",
+        "turquoise": "7",
+        "gray": "8",
+        "light blue": "1",
+        "light green": "10",
+        "pink": "4"
+    }
 
-    if "reminders" in event:
-        if "overrides" in event["reminders"]:
-            event["reminders"]["useDefault"] = False
-        elif "useDefault" not in event["reminders"]:
-            event["reminders"]["useDefault"] = True
-    else:
+    gemini_new_color_instructions = (
+        "Convert the user's color name input to one of the following canonical names, handling synonyms and misspellings:\n"
+        "red, green, blue, purple, yellow, orange, turquoise, gray, light blue, light green, pink.\n"
+        "If the input does not match any of these colors, return the exact phrase 'no_color'."
+    )
+    
+    config = genai.types.GenerateContentConfig(
+        system_instruction=gemini_new_color_instructions,
+        response_mime_type="text/plain",
+        temperature=0.0,
+        max_output_tokens=5
+    )
+
+    if event.get("no_color", False):
+        print("❌ Podano kolor, który nie jest obsługiwany. Wybierz poprawny kolor. Wydarzenie nie zostało utworzone.")
+        event.pop("colorId", None)
+
+        while True:
+            is_new_color = input("Ustawić nowy kolor (jeśli nie domyślnie niebieski)? T,t/N,n: ").lower()
+
+            if is_new_color == "t":
+                new_color = input("Podaj nowy kolor: ").lower()
+                
+                try:
+                    response = client.models.generate_content(
+                        model=MODEL_NAME,
+                        contents=new_color,
+                        temperature=0.0,
+                        max_output_tokens=5,
+                        config=config
+                    )
+                    ai_message = response.text.strip()
+
+                except Exception as e:
+                    print(f"❌ Wystąpił błąd llm podczas generowania koloru: {e}")
+                    continue
+
+                if ai_message == "no_color":
+                    print("❌ Podano kolor, który nie jest obsługiwany. Wybierz poprawny kolor.")
+                    continue
+                else:
+                    event["colorId"] = COLOR_MAP.get(ai_message)
+                    print(f"✅ Ustawiono nowy kolor: {ai_message} dla wydarzenia {event['summary']}.")
+                    break
+            elif is_new_color == "n":
+                event["colorId"] = "9"  # Default to blue
+                print("✅ Ustawiono domyślny kolor (niebieski) dla wydarzenia.")
+                break
+            else:
+                print("❌ Nieprawidłowy wybór. Proszę wpisać T lub N.")
+
+    if "reminders" not in event or event.get("reminders", {}).get("useDefault", True):
         event["reminders"] = {
             "useDefault": False,
             "overrides": [
@@ -156,6 +213,7 @@ def create_event_prompt(user_prompt: str) -> str:
         "- light green → \"10\"\n"
         "- pink → \"4\"\n"
         "If the user does not specify a color, do NOT include the colorId field in the response.\n"
+        "important - If the user specifies a color which is NOT included in the mapping return: no_color\n"
         "For reminders:\n"
         "- If the user specifies custom reminders, always return them inside 'overrides' \n"
         "and set 'useDefault' to false.\n"

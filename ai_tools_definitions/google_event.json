@@ -4,57 +4,122 @@
   "parameters": {
     "type": "object",
     "properties": {
-      "summary": { "type": "string", "description": "Title of the event." },
-      "location": { "type": "string", "description": "Event location." },
-      "description": { "type": "string", "description": "Event description." },
+      "summary": {
+        "type": "string",
+        "description": "Title of the event."
+      },
+      "location": {
+        "type": "string",
+        "description": "Event location."
+      },
+      "description": {
+        "type": "string",
+        "description": "Event description."
+      },
       "start": {
         "type": "object",
         "properties": {
-          "dateTime": { "type": "string", "description": "Start date/time in ISO format." },
-          "timeZone": { "type": "string", "description": "Time zone for the start time." }
+          "dateTime": {
+            "type": "string",
+            "description": "Start date/time in ISO format."
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "Time zone for the start time."
+          }
         },
-        "required": ["dateTime", "timeZone"]
+        "required": [
+          "dateTime",
+          "timeZone"
+        ]
       },
       "end": {
         "type": "object",
         "properties": {
-          "dateTime": { "type": "string", "description": "End date/time in ISO format." },
-          "timeZone": { "type": "string", "description": "Time zone for the end time." }
+          "dateTime": {
+            "type": "string",
+            "description": "End date/time in ISO format."
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "Time zone for the end time."
+          }
         },
-        "required": ["dateTime", "timeZone"]
+        "required": [
+          "dateTime",
+          "timeZone"
+        ]
       },
       "attendees": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "email": { "type": "string" }
+            "email": {
+              "type": "string"
+            }
           },
-          "required": ["email"]
+          "required": [
+            "email"
+          ]
         }
       },
       "reminders": {
         "type": "object",
         "properties": {
-          "useDefault": { "type": "boolean" },
+          "useDefault": {
+            "type": "boolean"
+          },
           "overrides": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "method": { "type": "string", "enum": ["email", "popup"] },
-                "minutes": { "type": "integer" }
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "email",
+                    "popup"
+                  ]
+                },
+                "minutes": {
+                  "type": "integer"
+                }
               },
-              "required": ["method", "minutes"]
+              "required": [
+                "method",
+                "minutes"
+              ]
             }
           }
         }
       },
-        "colorId": {
+      "colorId": {
         "type": "string",
-        "description": "ID koloru wydarzenia (1-11)"
+        "enum": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11"
+        ],
+        "description": "Google Calendar colorId. Mapping suggested in system prompt."
+      },
+      "no_color": {
+        "type": "boolean",
+        "description": "Set true if user requested an unsupported color; when true, omit colorId."
       }
     },
-    "required": ["summary", "start", "end"]
+    "required": [
+      "summary",
+      "start",
+      "end"
+    ]
   }
 }

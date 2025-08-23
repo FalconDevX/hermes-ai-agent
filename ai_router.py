@@ -64,6 +64,8 @@ def choose_specified_model(user_prompt: str) -> str:
         list_events_prompt(user_prompt)
     elif result == "remove_event":
         delete_event_prompt(user_prompt)
+    elif result == "edit_event":
+        print("✏️ Funkcja edytowania wydarzeń nie jest jeszcze zaimplementowana.")
     elif result == "clarification_needed":
         print("❓ Doprecyzuj swoje polecenie.")
 
