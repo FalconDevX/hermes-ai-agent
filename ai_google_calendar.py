@@ -4,9 +4,8 @@ from zoneinfo import ZoneInfo
 from google import genai
 import json
 from dotenv import load_dotenv
-from utils import setup_calendar_service
-
-from utils import messages
+import utils
+from utils import setup_calendar_service, messages, hex_to_rgb
 
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -15,6 +14,7 @@ MODEL_NAME = "gemini-2.0-flash"
 
 def create_event_api(event: json):
     service = setup_calendar_service()
+    calendar_id = utils.cur_calendar["id"]
 
     COLOR_MAP = {
         "red": "11",
@@ -89,13 +89,15 @@ def create_event_api(event: json):
             ]
         }
 
-    event = service.events().insert(calendarId='primary', body=event).execute()
+    event = service.events().insert(calendarId=calendar_id, body=event).execute()
     print(f"✅ Utworzono wydarzenie: {event.get('htmlLink')}")
 
 def list_events_api(time_min, time_max):
     service = setup_calendar_service()
+    calendar_id = utils.cur_calendar["id"]
+
     events_result = service.events().list(
-        calendarId='primary',
+        calendarId=calendar_id,
         timeMin=time_min,
         timeMax=time_max,
         maxResults=10,
@@ -112,11 +114,11 @@ def list_events_api(time_min, time_max):
         print(f"📅 {event['summary']} (🕒 Początek: {start})")
 
 def delete_event_api(event_name: str, time_min: str, time_max: str):
-    """Delete event by searching its name in a given date range."""
     service = setup_calendar_service()
-    
+    calendar_id = utils.cur_calendar["id"]
+
     events_result = service.events().list(
-        calendarId='primary',
+        calendarId=calendar_id,
         timeMin=time_min,
         timeMax=time_max,
         maxResults=10,
@@ -142,7 +144,7 @@ def delete_event_api(event_name: str, time_min: str, time_max: str):
 
         confirm = input("Usunąć? (T/N): ").lower()
         if confirm in ("t", "y"):
-            service.events().delete(calendarId='primary', eventId=event["id"]).execute()
+            service.events().delete(calendarId=calendar_id, eventId=event["id"]).execute()
             print(f"✅ Usunięto: {event['summary']}")
         else:
             print("❎ Usuwanie anulowane.")
@@ -168,7 +170,7 @@ def delete_event_api(event_name: str, time_min: str, time_max: str):
 
                     confirm = input("Usunąć? (T/N): ").lower()
                     if confirm in ("t", "y"):
-                        service.events().delete(calendarId='primary', eventId=event["id"]).execute()
+                        service.events().delete(calendarId=calendar_id, eventId=event["id"]).execute()
                         print(f"✅ Usunięto: {event['summary']}")
                     else:
                         print("❎ Usuwanie anulowane.")
@@ -392,3 +394,57 @@ def delete_event_prompt(user_prompt: str):
     else:
         raise ValueError("No function call found in the response. Please check the input prompt.")
 
+def change_calendar_api(ai_text: str):
+    service = setup_calendar_service()
+
+    utils.cur_calendar = service.calendarList().get(calendarId=ai_text).execute()
+
+    bg_color = utils.cur_calendar.get("backgroundColor")
+    cur_calendar_color_rgb = hex_to_rgb(bg_color)
+
+    ansi_color = f"\033[38;2;{cur_calendar_color_rgb[0]};{cur_calendar_color_rgb[1]};{cur_calendar_color_rgb[2]}m"
+    ansi_reset = "\033[0m"
+
+    return f"{ansi_color}[{utils.cur_calendar['summary']}] {ansi_reset} 💬 Wpisz swoje polecenie: "
+
+def change_calendar_prompt(user_prompt: str) -> str:
+    service = setup_calendar_service()
+    calendars = service.calendarList().list().execute()
+    calendars = {calendar['summary']: calendar['id'] for calendar in calendars['items']}
+
+    messages.append(
+        genai.types.Content(
+            role="user",
+            parts=[genai.types.Part.from_text(text=user_prompt)]
+        )
+    )
+
+    gemini_instructions = (
+        f"User gave a calendar name. Here are available calendars:\n{calendars}\n\n"
+        "Return ONLY the calendar ID (value), not the name. "
+        "If the name doesn't exist, return 'not_found'."
+    )
+
+    config = genai.types.GenerateContentConfig(
+        system_instruction=gemini_instructions,
+        response_mime_type="text/plain",
+        temperature=0.0
+    )
+
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=messages[-10:],
+        config=config
+    )
+
+    ai_text = response.candidates[0].content.parts[0].text.strip()
+
+    if ai_text in calendars.values():
+        service = setup_calendar_service()
+        cal_obj = service.calendars().get(calendarId=ai_text).execute()
+        
+        print(f"📌 Zmieniono kalendarz na: {cal_obj['summary']}")
+        return change_calendar_api(ai_text)  
+    else:
+        print("❌ Nie znaleziono kalendarza o podanej nazwie.")
+        return f"[{utils.cur_calendar['summary']}] 💬 Wpisz swoje polecenie: "

@@ -9,6 +9,8 @@ SCOPES = [
     "https://www.googleapis.com/auth/calendar.events"     
 ]
 
+cur_calendar = {"summary": "primary", "id": "primary"}
+
 messages = []
 
 def setup_calendar_service():
@@ -34,4 +36,8 @@ def setup_calendar_service():
     except Exception as e:
         print(f"⚠️ Wystąpił błąd podczas konfigurowania usługi Kalendarza Google: {e}")
         return None
+    
+def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
+    hex_color = hex_color.lstrip("#")
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
