@@ -1,3 +1,5 @@
+<img src="docs/logo.png" alt="Logo" width="200"/>
+
 # Hermes AI Agent project for google apps management
 
 ## Project writes in Python that allows user to manage Google Calendar events, Gmail mails and more.
@@ -9,7 +11,7 @@ It is designed to understands natural language commands in Polish and can create
 
 ### 🗓️ Google Calendar
 - Add events with name and date
-- List events in given range - 
+- List events in given range 
 - Create own reminders to events
 - Choose colors to events
 - Delete events by name (Hermes distinguish events with the same name)
@@ -33,9 +35,9 @@ It is designed to understands natural language commands in Polish and can create
 ### Steps
 
 1. **Clone repository**
-   ```
-   git clone https://github.com/TwojUser/HermesAI-Agent.git
-   cd HermesAI-Agent
+ ```
+ git clone https://github.com/TwojUser/HermesAI-Agent.git
+ cd HermesAI-Agent
    
 2. **Install dependencies**
 ```
@@ -75,6 +77,7 @@ python main.py
 
 ## Architecture
  The diagram below shows how Hermes AI Agent processes user input and interacts with Google APIs:
+
 ![Hermes AI flowchart](docs/Flowchart.jpg)
 
 ## 🛠️ Roadmap
