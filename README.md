@@ -52,7 +52,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 4. Run the main program file
 ```
 python main.py
-```
+
 
 ## Usage examples
 
