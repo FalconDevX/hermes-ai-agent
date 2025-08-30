@@ -33,31 +33,33 @@ It is designed to understands natural language commands in Polish and can create
 ### Steps
 
 1. **Clone repository**
-   ```bash
-git clone https://github.com/TwojUser/HermesAI-Agent.git
-cd HermesAI-Agent
-```
+   ```
+   git clone https://github.com/TwojUser/HermesAI-Agent.git
+   cd HermesAI-Agent
+   
 2. **Install dependencies**
-```bash
+```
 pip install -r requirements.txt
 ```
 3. **Set environment variables**
 - Create `.env` file and add:
-```bash
+```
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 - Place `credentials.json` (Google Cloud credentials) in the project root
 4. Run the main program file
-```bash
+```
 python main.py
 ```
 
 ## Usage examples
 
-![[Pasted image 20250830150947.png]]
-![[Pasted image 20250830151010.png]]
+![Opis obrazka](docs/example1.png)
+![Opis obrazka](docs/example2.png)
+
 ## Project structure
 
+```
 📁 HermesAI-Agent
  ┣ 📁 ai_tools_definitions # all objects and structures .json files for gemini function call 
  ┣ 📜 main.py        # Entry point
@@ -69,10 +71,11 @@ python main.py
  ┣ 📜.env      # your file with google api key
  ┣ 📜 credentials.json     # your file with calendar creds
  ┗ 📜 token.json        # auto generated file with google auth and refresh token
+```
 
 ## Architecture
  The diagram below shows how Hermes AI Agent processes user input and interacts with Google APIs:
-![[Flowchart.jpg|1300]]
+![Hermes AI flowchart](docs/Flowchart.jpg)
 
 ## 🛠️ Roadmap
 - Google Calendar integration
