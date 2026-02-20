@@ -1,8 +1,17 @@
 <img src="docs/logo.png" alt="Logo" width="200"/>
 
-# Hermes AI Agent project for google apps management
+# Hermes AI Agent
 
-## Project writes in Python that allows user to manage Google Calendar events, Gmail mails and more.
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Google Calendar API](https://img.shields.io/badge/Google%20Calendar%20API-integrated-4285F4?logo=googlecalendar&logoColor=white)](https://developers.google.com/calendar)
+[![Gemini API](https://img.shields.io/badge/Google%20Gemini%20API-2.0%20Flash-8E44AD)](https://ai.google.dev/)
+[![Gmail API](https://img.shields.io/badge/Gmail%20API-planned-EA4335?logo=gmail&logoColor=white)](https://developers.google.com/gmail/api)
+[![OAuth 2.0](https://img.shields.io/badge/Auth-OAuth%202.0-green)](https://oauth.net/2/)
+[![Status](https://img.shields.io/badge/status-active%20development-yellow)](.)
+
+Lightweight Python assistant for managing **Google Calendar** (working) and **Gmail** (planned) via natural language using the Gemini API. Supports Polish commands to create, list, edit, and delete events; switch calendars; and customize colors and reminders.
+
+---
 
 Hermes AI Agent is a lightweight Python assistant for managing **Google Calendar** (working) and **Gmail** (under development) via prompts with Gemini API.  
 It is designed to understands natural language commands in Polish and can create, delete, edit and list events, and in the future will also read and organize e‑mails.
@@ -35,24 +44,27 @@ It is designed to understands natural language commands in Polish and can create
 ### Steps
 
 1. **Clone repository**
- ```
- git clone https://github.com/TwojUser/HermesAI-Agent.git
- cd HermesAI-Agent
-   
+   ```bash
+   git clone https://github.com/TwojUser/HermesAI-Agent.git
+   cd HermesAI-Agent
+   ```
+
 2. **Install dependencies**
-```
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
+
 3. **Set environment variables**
-- Create `.env` file and add:
-```
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-- Place `credentials.json` (Google Cloud credentials) in the project root
-4. Run the main program file
-```
-python main.py
-```
+   - Create a `.env` file and add:
+     ```
+     GEMINI_API_KEY=your_gemini_api_key_here
+     ```
+   - Place `credentials.json` (Google Cloud credentials) in the project root.
+
+4. **Run the application**
+   ```bash
+   python main.py
+   ```
 
 ## Usage examples
 
